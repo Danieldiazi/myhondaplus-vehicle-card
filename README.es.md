@@ -122,6 +122,21 @@ device: ID_DEL_DISPOSITIVO
 
 La mayor parte de la configuración se puede realizar desde el editor visual, por lo que normalmente no necesitas buscar ni copiar el identificador del dispositivo.
 
+## Solución de problemas
+
+### La tarjeta sigue sin datos después de reautenticar My Honda+
+
+Si Home Assistant muestra un error HTTP 401, indica que el token de actualización no es válido o ha caducado, o registra el código `CSIAQ0158E`, el problema procede de la autenticación de la integración My Honda+ y no de esta tarjeta.
+
+1. Ve a **Ajustes → Dispositivos y servicios → My Honda+** y completa la reautenticación solicitada.
+2. Cuando termine, vuelve a la integración My Honda+.
+3. Abre su menú de tres puntos y pulsa **Recargar**.
+4. Espera a que las entidades del vehículo vuelvan a estar disponibles. Si fuera necesario, recarga después el panel en el navegador.
+
+El paso importante es **recargar la integración My Honda+**, no limitarse a actualizar el navegador. En algunas versiones, la reautenticación guarda las nuevas credenciales, pero no reinicia automáticamente una entrada de configuración que ya se encuentra en `setup_error`.
+
+La tarjeta no puede realizar esa recarga de forma segura: se ejecuta en el frontend de Lovelace, no administra las credenciales de Honda ni el ciclo de vida de la integración y no debe depender de APIs internas de administración de Home Assistant. Si la integración continúa sin cargarse, reinicia Home Assistant, revisa los registros de My Honda+ y comunica el problema de autenticación en el [repositorio de la integración](https://github.com/enricobattocchi/myhondaplus-homeassistant).
+
 ## Responsabilidad de cada proyecto
 
 | Proyecto                     | Responsabilidad                                                                                                             |
