@@ -122,6 +122,21 @@ device: DEVICE_ID
 
 Most settings are available in the visual editor, so you normally do not need to find or copy the device identifier.
 
+## Troubleshooting
+
+### The card still has no data after reauthenticating My Honda+
+
+If Home Assistant reports an HTTP 401 error, an invalid or expired refresh token, or the code `CSIAQ0158E`, the problem originates in the My Honda+ integration authentication rather than in this card.
+
+1. Go to **Settings → Devices & services → My Honda+** and complete the requested reauthentication.
+2. When reauthentication finishes, return to the My Honda+ integration.
+3. Open its three-dot menu and select **Reload**.
+4. Wait for the vehicle entities to become available again. If necessary, then reload the dashboard in the browser.
+
+The important step is **reloading the My Honda+ integration**, not merely refreshing the browser. In some versions, reauthentication stores the new credentials but does not automatically restart a config entry that is already in `setup_error`.
+
+This card cannot safely perform that reload itself: it runs in the Lovelace frontend, does not manage Honda credentials or the integration lifecycle, and must not depend on Home Assistant's internal administration APIs. If the integration still cannot load, restart Home Assistant, review the My Honda+ logs and report the authentication problem in the [integration repository](https://github.com/enricobattocchi/myhondaplus-homeassistant).
+
 ## Project responsibilities
 
 | Project                      | Responsibility                                                                                                       |
