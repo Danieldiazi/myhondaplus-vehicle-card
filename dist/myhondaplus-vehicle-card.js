@@ -1296,7 +1296,7 @@ var pt = /* @__PURE__ */ new Set([
 	"none"
 ]);
 function Y(e) {
-	if (!(!e || mt.has(e.state.toLowerCase()))) return pt.has(e.state.toLowerCase());
+	if (e && !mt.has(e.state.toLowerCase())) return pt.has(e.state.toLowerCase());
 }
 function X(e) {
 	if (!e || mt.has(e.state.toLowerCase())) return "—";
@@ -1330,7 +1330,7 @@ function gt(e, t, n = Date.now()) {
 	};
 }
 //#endregion
-//#region \0@oxc-project+runtime@0.144.0/helpers/esm/decorate.js
+//#region \0@oxc-project+runtime@0.149.0/helpers/esm/decorate.js
 function Z(e, t, n, r) {
 	var i = arguments.length, a = i < 3 ? t : r === null ? r = Object.getOwnPropertyDescriptor(t, n) : r, o;
 	if (typeof Reflect == "object" && typeof Reflect.decorate == "function") a = Reflect.decorate(e, t, n, r);
@@ -1358,7 +1358,7 @@ var _t = t((() => {})), vt = /* @__PURE__ */ n({ MyHondaPlusVehicleCardEditor: (
 			e.has("hass") && this.hass && !this.automaticDiscoveryStarted && (this.automaticDiscoveryStarted = !0, this.loadDevices());
 		}
 		async loadDevices() {
-			if (!(!this.hass || this.loading)) {
+			if (this.hass && !this.loading) {
 				this.loading = !0, this.discoveryError = !1;
 				try {
 					let [e, t] = await Promise.all([this.hass.callWS({ type: "config/device_registry/list" }), this.hass.callWS({ type: "config/entity_registry/list" })]), n = tt(e, t, this.hass.config?.components);
