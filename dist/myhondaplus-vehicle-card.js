@@ -584,7 +584,7 @@ var He = t((() => {
 })), Ue = t((() => {})), We = t((() => {})), Ge = t((() => {})), Ke = t((() => {})), qe = t((() => {})), Je = t((() => {})), Ye = t((() => {
 	Le(), Ve(), He(), Ue(), We(), Ge(), Ke(), qe(), Je();
 })), V, Xe, Ze, H, U, W = t((() => {
-	V = "myhondaplus-vehicle-card", Xe = "myhondaplus-vehicle-card-editor", Ze = "1.0.1", H = {
+	V = "myhondaplus-vehicle-card", Xe = "myhondaplus-vehicle-card-editor", Ze = "1.0.3", H = {
 		type: `custom:${V}`,
 		name: "My Honda+",
 		vehicle_color: "#a51d2d",
