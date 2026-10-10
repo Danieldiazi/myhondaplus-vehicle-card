@@ -10,7 +10,11 @@ El proyecto sigue [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-10-10
+
 ### Fixed
+
+- Versión del paquete, lockfile y bundle sincronizada para recuperar la publicación manual `v1.0.2`, que no incluía el asset JavaScript requerido por HACS.
 
 - Detección separada de `refresh_data`/`refresh_from_car` y `refresh_cached`, con identificadores estables y desempate determinista.
 - La climatización no se confunde con deshielo ni ajustes relacionados.

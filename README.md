@@ -124,7 +124,7 @@ Most settings are available in the visual editor, so you normally do not need to
 
 ### Manual installation without HACS
 
-1. Download the generated `myhondaplus-vehicle-card.js` asset from a [release](https://github.com/Danieldiazi/myhondaplus-vehicle-card/releases).
+1. Download the generated `myhondaplus-vehicle-card.js` asset from a [release](https://github.com/Danieldiazi/myhondaplus-vehicle-card/releases). Confirm that **Assets** includes this file; if it is missing, choose the most recent version that provides it. The source-code ZIP and TAR archives do not replace this asset.
 2. Copy it to `/config/www/myhondaplus-vehicle-card.js` on your Home Assistant server.
 3. Register `/local/myhondaplus-vehicle-card.js` under **Settings → Dashboards → Resources**, type **JavaScript module**. Resource management may require advanced mode in your HA profile.
 4. Hard reload, then add the card. To update, replace the same file; register the resource once.

@@ -4,6 +4,8 @@
 
 This guide documents the safe release process for My Honda+ Vehicle Card and prevents publishing a stale bundle.
 
+**Creating a manual GitHub Release does not update the project's version or generate the HACS JavaScript.** Prepare the version pull request first, then trigger the **Release** workflow as described here. A tag or release without the `myhondaplus-vehicle-card.js` asset is not a complete publication.
+
 ## 1. Choose the version
 
 The project follows Semantic Versioning:
@@ -83,7 +85,7 @@ HACS detection can take time. Restarting Home Assistant does not force that chec
 
 Do not silently overwrite a release or move a tag already consumed by users. Fix the cause, increment the patch version and publish a new artifact from the latest valid distribution commit.
 
-If a release shipped stale code:
+If a release shipped stale code, lacks the JavaScript asset or tags a package with a different version:
 
 1. identify the latest correct `main` commit;
 2. synchronize metadata in a new patch;

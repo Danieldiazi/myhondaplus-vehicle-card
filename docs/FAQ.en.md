@@ -51,6 +51,10 @@ Omitted `statuses` defaults to climate and location in compact layout and all de
 
 HACS shows the installed and latest versions on the repository page. Home Assistant also creates an update entity with `installed_version` and `latest_version` attributes. The loaded card version is announced in the browser console.
 
+## HACS shows a new version but cannot download it
+
+Check that the release includes the `myhondaplus-vehicle-card.js` asset. A tag and the source-code ZIP/TAR archives are not sufficient. If the JavaScript is missing, install the most recent version that provides it and report the issue; reloading the browser or restarting HA cannot create a missing file. The maintainer should follow the [recovery guide](RELEASING.en.md#recovering-from-an-incorrect-release) and publish a complete patch release.
+
 ## HACS does not detect a new release immediately
 
 Detection depends on HACS's periodic check. You can refresh repository information, but restarting Home Assistant does not guarantee earlier detection. Once HACS installs the update, reload the browser without cache.
