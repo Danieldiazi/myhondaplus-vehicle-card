@@ -10,6 +10,18 @@ El proyecto sigue [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-10-10
+
+### Fixed
+
+- Detección automática de puertas y ventanas mediante las claves `doors_open` y `windows_open` de la integración, también con entidades renombradas e identificadores únicos estables.
+- Se conservan los alias anteriores y los fallbacks por nombre; las claves actuales tienen prioridad entre coincidencias del mismo tipo.
+
+### Changed
+
+- Las pruebas de navegador utilizan las claves reales de puertas y ventanas; las pruebas unitarias cubren compatibilidad, prioridad y candidatos no válidos.
+- ROADMAP sin una referencia fija a la versión actual y preguntas frecuentes bilingües sobre estados de puertas y ventanas ausentes.
+
 ## [1.0.3] - 2026-10-10
 
 ### Fixed

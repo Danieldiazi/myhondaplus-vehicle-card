@@ -1,6 +1,6 @@
 {
   "name": "myhondaplus-vehicle-card",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A polished Lovelace vehicle card for the unofficial My Honda+ Home Assistant integration",
   "type": "module",
   "license": "MIT",

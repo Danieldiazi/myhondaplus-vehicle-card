@@ -12,6 +12,14 @@ La tarjeta detecta capacidades mediante las entidades reales del dispositivo, nu
 
 Una entidad temporalmente `unknown` o `unavailable` es diferente de una capacidad inexistente: la primera puede mostrarse como **Sin datos**; la segunda se oculta.
 
+## ¿Por qué no aparecen los estados de puertas o ventanas?
+
+La versión `1.0.4` corrige la detección de las claves `doors_open` y `windows_open` de My Honda+ for Home Assistant, manteniendo los alias anteriores. Los identificadores estables permiten detectar estas entidades aunque se hayan renombrado en Home Assistant.
+
+Comprueba que los sensores binarios correspondientes estén habilitados y asociados al vehículo seleccionado. Tras actualizar la tarjeta y recargar el navegador sin caché, utiliza **Volver a detectar integración y entidades** en el editor. En el diseño compacto, añade puertas y ventanas a los estados seleccionados si quieres mostrarlas; sus valores predeterminados son climatización y ubicación.
+
+Si la integración no publica estos sensores, la tarjeta no puede mostrar esos estados. Si existen pero están temporalmente `unknown` o `unavailable`, se muestran como **Sin datos**.
+
 ## ¿Por qué mi modelo muestra el logotipo de Honda?
 
 El Civic dispone de una ilustración específica. Los modelos sin un SVG específico utilizan el logotipo de Honda como fallback oficial. Esto no afecta a las métricas, estados ni controles detectados.

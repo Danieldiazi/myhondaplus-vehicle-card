@@ -27,6 +27,83 @@ describe("resolveEntities", () => {
     expect(result.lock).toBeUndefined();
   });
 
+  it.each(["doors", "windows"] as const)(
+    "detects renamed %s by the integration's open-status key",
+    (status) => {
+      const detected = entry("binary_sensor.synthetic_renamed", `${status}_open`);
+      expect(resolveEntities([detected])[status]).toBe(detected.entity_id);
+    },
+  );
+
+  it.each(["doors", "windows"] as const)(
+    "detects renamed %s by unique id without a translation key",
+    (status) => {
+      const detected = {
+        ...entry("binary_sensor.synthetic_renamed"),
+        unique_id: `synthetic_${status}_open`,
+      };
+      expect(resolveEntities([detected])[status]).toBe(detected.entity_id);
+    },
+  );
+
+  it.each(["doors", "windows"] as const)(
+    "prefers the current %s key over legacy aliases in any registry order",
+    (status) => {
+      const current = entry("binary_sensor.synthetic_z", `${status}_open`);
+      const legacy = entry("binary_sensor.synthetic_a", status);
+      for (const entries of [
+        [current, legacy],
+        [legacy, current],
+      ]) {
+        expect(resolveEntities(entries)[status]).toBe(current.entity_id);
+      }
+    },
+  );
+
+  it.each(["doors", "windows"] as const)(
+    "keeps %s legacy aliases and name fallbacks compatible",
+    (status) => {
+      const singular = status === "doors" ? "door" : "window";
+      for (const alias of [status, singular]) {
+        const legacy = entry("binary_sensor.synthetic_renamed", alias);
+        expect(resolveEntities([legacy])[status]).toBe(legacy.entity_id);
+      }
+      const fallbackId = entry(`binary_sensor.synthetic_${status}_open`);
+      const fallbackName = {
+        ...entry("binary_sensor.synthetic_renamed"),
+        original_name: `${status}_open`,
+      };
+      expect(resolveEntities([fallbackId])[status]).toBe(fallbackId.entity_id);
+      expect(resolveEntities([fallbackName])[status]).toBe(fallbackName.entity_id);
+    },
+  );
+
+  it.each(["doors", "windows"] as const)(
+    "rejects incompatible, disabled and foreign %s candidates",
+    (status) => {
+      const key = `${status}_open`;
+      const incompatible = {
+        ...entry(`binary_sensor.synthetic_${key}`, `${status}_locked`),
+        unique_id: `synthetic_${status}_locked`,
+        original_name: key,
+      };
+      const disabled = { ...entry("binary_sensor.synthetic_disabled", key), disabled_by: "user" };
+      const foreign = {
+        ...entry("binary_sensor.synthetic_foreign", key),
+        platform: "other_integration",
+      };
+      expect(
+        resolveEntities([
+          incompatible,
+          disabled,
+          foreign,
+          entry("sensor.synthetic_status", key),
+          entry("lock.synthetic_status", key),
+        ])[status],
+      ).toBeUndefined();
+    },
+  );
+
   it("preserves explicit overrides", () => {
     const result = resolveEntities([entry("sensor.detected_range", "range")], {
       range: "sensor.manual_range",
