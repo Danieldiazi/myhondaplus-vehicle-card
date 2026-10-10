@@ -1,6 +1,6 @@
 # Roadmap
 
-Este documento refleja la base estable iniciada en `v1.0.0` y corregida en la versión actual `v1.0.1`. Las próximas prioridades pueden ajustarse según las entidades que publique My Honda+ for Home Assistant y las pruebas aportadas por propietarios de distintos modelos.
+Este documento recoge la base estable de la serie `1.x`. La versión publicada más reciente se puede consultar en [GitHub Releases](https://github.com/Danieldiazi/myhondaplus-vehicle-card/releases/latest) y sus cambios en [CHANGELOG.md](CHANGELOG.md). Las próximas prioridades pueden ajustarse según las entidades que publique My Honda+ for Home Assistant y las pruebas aportadas por propietarios de distintos modelos.
 
 ## Base estable — serie v1.0.x
 

@@ -12,6 +12,14 @@ The card discovers capabilities from the actual entities associated with the dev
 
 A temporarily `unknown` or `unavailable` entity differs from a missing capability: the former can appear as **No data**; the latter is hidden.
 
+## Why are door or window statuses missing?
+
+Version `1.0.4` fixes discovery of My Honda+ for Home Assistant's `doors_open` and `windows_open` keys while retaining earlier aliases. Stable identifiers allow these entities to be discovered even after renaming them in Home Assistant.
+
+Check that the corresponding binary sensors are enabled and associated with the selected vehicle. After updating the card and reloading the browser without cache, use **Detect integration and entities again** in the editor. In compact layout, add doors and windows to the selected statuses to display them; its defaults are climate and location.
+
+If the integration does not publish these sensors, the card cannot show those statuses. Existing sensors that are temporarily `unknown` or `unavailable` are shown as **No data**.
+
 ## Why does my model show the Honda logo?
 
 The Civic has a dedicated illustration. Models without a specific SVG use the Honda logo as the official fallback. This does not affect detected metrics, statuses or controls.

@@ -83,6 +83,11 @@ test("Civic full layout remains readable on a light desktop", async ({ page }) =
     ".status[aria-label='Doors: Closed']",
     "binary_sensor.synthetic_doors",
   );
+  await expectMoreInfo(
+    page,
+    ".status[aria-label='Windows: Closed']",
+    "binary_sensor.synthetic_windows",
+  );
   await expectMoreInfo(page, ".badge", "lock.synthetic_vehicle");
   await expectMoreInfo(page, ".freshness", "sensor.synthetic_updated");
   await expectMoreInfo(page, ".info-status", "device_tracker.synthetic_location");
