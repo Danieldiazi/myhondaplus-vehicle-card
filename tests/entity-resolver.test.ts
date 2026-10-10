@@ -59,4 +59,72 @@ describe("resolveEntities", () => {
     expect(result.refresh).toBe("button.civic_refresh_from_car");
     expect(result.horn_lights).toBe("button.civic_horn");
   });
+  it.each(["refresh_data", "refresh_from_car"])("keeps %s separate from cached refresh", (key) => {
+    const remote = entry("button.synthetic_renamed_remote", key);
+    const cached = entry("button.synthetic_renamed_cached", "refresh_cached");
+    for (const entries of [
+      [remote, cached],
+      [cached, remote],
+    ]) {
+      expect(resolveEntities(entries)).toMatchObject({
+        refresh: remote.entity_id,
+        refresh_cached: cached.entity_id,
+      });
+    }
+    expect(resolveEntities([remote]).refresh_cached).toBeUndefined();
+  });
+
+  it("uses stable unique identifiers before renamed entity ids or display names", () => {
+    const remote = { ...entry("button.synthetic_traducido"), unique_id: "synthetic_refresh_data" };
+    const cached = { ...entry("button.synthetic_guardado"), unique_id: "synthetic_refresh_cached" };
+    expect(resolveEntities([remote, cached])).toMatchObject({
+      refresh: remote.entity_id,
+      refresh_cached: cached.entity_id,
+    });
+    expect(resolveEntities([entry("button.synthetic_refresh_data")]).refresh).toBe(
+      "button.synthetic_refresh_data",
+    );
+  });
+
+  it("selects climate independently of order, excluding defrost and related settings", () => {
+    const climate = entry("switch.synthetic_renamed", "climate");
+    const related = [
+      entry("switch.synthetic_climate_defrost", "climate_defrost_setting"),
+      entry("switch.synthetic_climate_duration", "climate_duration_setting"),
+    ];
+    for (const entries of [
+      [...related, climate],
+      [climate, ...related],
+    ]) {
+      expect(resolveEntities(entries).climate).toBe(climate.entity_id);
+    }
+    expect(resolveEntities(related).climate).toBeUndefined();
+    expect(resolveEntities([entry("switch.synthetic_climate_defrost")]).climate).toBeUndefined();
+    expect(resolveEntities([entry("switch.synthetic_preconditioning")]).climate).toBe(
+      "switch.synthetic_preconditioning",
+    );
+  });
+
+  it("does not let a display name override a stable incompatible capability", () => {
+    const plug = {
+      ...entry("sensor.synthetic_charging", "plug_status"),
+      original_name: "Charging",
+    };
+    expect(resolveEntities([plug]).charging).toBeUndefined();
+    expect(resolveEntities([entry("sensor.synthetic_carga", "charge_status")]).charging).toBe(
+      "sensor.synthetic_carga",
+    );
+    expect(resolveEntities([entry("sensor.synthetic_charging")]).charging).toBe(
+      "sensor.synthetic_charging",
+    );
+  });
+
+  it("ignores disabled entities and breaks equal matches deterministically", () => {
+    const disabled = { ...entry("switch.synthetic_disabled", "climate"), disabled_by: "user" };
+    const a = entry("switch.synthetic_a", "climate");
+    const b = entry("switch.synthetic_b", "climate");
+    expect(resolveEntities([disabled]).climate).toBeUndefined();
+    expect(resolveEntities([b, a]).climate).toBe(a.entity_id);
+    expect(resolveEntities([a, b]).climate).toBe(a.entity_id);
+  });
 });

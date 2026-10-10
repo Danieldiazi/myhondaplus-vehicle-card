@@ -1,3 +1,4 @@
+import { isEntityAvailable } from "./vehicle-state";
 import { VERSION } from "./constants";
 import type { CardDiagnostics, EntityMap, HomeAssistant, VehicleModelKey } from "./types";
 
@@ -44,7 +45,9 @@ export function createDiagnostics(
       return {
         key,
         entityId: domain ? `${domain}.[redacted]` : undefined,
-        available: Boolean(entityId && hass?.states[entityId]),
+        configured: Boolean(entityId),
+        present: Boolean(entityId && hass?.states[entityId]),
+        available: isEntityAvailable(entityId ? hass?.states[entityId] : undefined),
       };
     }),
   };

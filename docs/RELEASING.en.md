@@ -62,7 +62,7 @@ The workflow:
 
 1. derives the tag from the branch name;
 2. verifies that the tag matches `package.json`;
-3. runs installation, audit, checks and build;
+3. runs installation, audit, checks, build and Chromium browser tests;
 4. creates the tag and GitHub Release;
 5. attaches `dist/myhondaplus-vehicle-card.js`.
 

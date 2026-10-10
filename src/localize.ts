@@ -15,6 +15,10 @@ const TRANSLATIONS = {
     updated_minutes: "Updated {count} min ago",
     updated_hours: "Updated {count} h ago",
     no_update_date: "No update date",
+    ha_update_age: "Home Assistant: {age}. Vehicle update date unknown",
+    confirm_unknown_age_action:
+      "The vehicle update date is unknown. Its current state may differ. Continue with the remote action?",
+    invalid_config: "Invalid configuration field: {field}",
     stale_data: "Vehicle data may be outdated",
     range: "Range",
     battery: "Battery",
@@ -132,6 +136,10 @@ const TRANSLATIONS = {
     updated_minutes: "Actualizado hace {count} min",
     updated_hours: "Actualizado hace {count} h",
     no_update_date: "Sin fecha de actualización",
+    ha_update_age: "Home Assistant: {age}. Fecha del vehículo desconocida",
+    confirm_unknown_age_action:
+      "Se desconoce la fecha de los datos del vehículo. Su estado actual puede ser diferente. ¿Continuar con la acción remota?",
+    invalid_config: "Campo de configuración no válido: {field}",
     stale_data: "Los datos del vehículo pueden estar desactualizados",
     range: "Autonomía",
     battery: "Batería",
@@ -251,6 +259,10 @@ const TRANSLATIONS = {
     updated_minutes: "Actualizado hai {count} min",
     updated_hours: "Actualizado hai {count} h",
     no_update_date: "Sen data de actualización",
+    ha_update_age: "Home Assistant: {age}. Data do vehículo descoñecida",
+    confirm_unknown_age_action:
+      "Descoñécese a data dos datos do vehículo. O seu estado actual pode ser diferente. Continuar coa acción remota?",
+    invalid_config: "Campo de configuración non válido: {field}",
     stale_data: "Os datos do vehículo poden estar desactualizados",
     range: "Autonomía",
     battery: "Batería",

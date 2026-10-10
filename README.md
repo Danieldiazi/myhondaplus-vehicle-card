@@ -20,7 +20,7 @@ Example of the card displaying a Honda HR-V with the generic Honda fallback.
 
 Before installing the card, you need:
 
-1. Home Assistant with a Lovelace dashboard.
+1. Home Assistant with a Lovelace dashboard. HACS metadata declares a minimum of **2024.12.0**; browser tests use synthetic data and do not certify every HA or vehicle version.
 2. The [My Honda+ for Home Assistant](https://github.com/enricobattocchi/myhondaplus-homeassistant) integration installed and working.
 3. At least one vehicle and its entities available in Home Assistant.
 4. HACS, recommended for installing and updating this card.
@@ -65,7 +65,7 @@ Install and configure [My Honda+ for Home Assistant](https://github.com/enricoba
 
 ### 2. Add the repository to HACS
 
-1. Open **HACS** and go to **Frontend**.
+1. Open **HACS**. Current versions use a single repository list; older versions may show a **Frontend** section.
 2. Open the three-dot menu in the upper-right corner.
 3. Select **Custom repositories**.
 4. Paste the following URL into **Repository**:
@@ -81,7 +81,7 @@ Adding the custom repository only makes it available to HACS. **The card is not 
 
 ### 3. Download and install the card from HACS
 
-1. Return to **HACS → Frontend**.
+1. Return to the **HACS** repository list and, if needed, filter by **Dashboard**.
 2. Search for **My Honda+ Vehicle Card** or open the repository you just added.
 3. Select **Download**.
 4. Confirm the suggested version and select **Download** again in the confirmation dialog.
@@ -121,6 +121,21 @@ device: DEVICE_ID
 ```
 
 Most settings are available in the visual editor, so you normally do not need to find or copy the device identifier.
+
+### Manual installation without HACS
+
+1. Download the generated `myhondaplus-vehicle-card.js` asset from a [release](https://github.com/Danieldiazi/myhondaplus-vehicle-card/releases).
+2. Copy it to `/config/www/myhondaplus-vehicle-card.js` on your Home Assistant server.
+3. Register `/local/myhondaplus-vehicle-card.js` under **Settings → Dashboards → Resources**, type **JavaScript module**. Resource management may require advanced mode in your HA profile.
+4. Hard reload, then add the card. To update, replace the same file; register the resource once.
+
+See the [official HACS custom repository instructions](https://www.hacs.xyz/docs/faq/custom_repositories/) for current terminology.
+
+## Data freshness and default content
+
+Freshness uses the vehicle timestamp sensor's state. A recent HA entity write does not prove that the car sent recent data. Missing or invalid vehicle dates remain unknown; an HA fallback age is labelled as an estimate. See the [configuration reference](docs/CONFIGURATION.en.md#vehicle-freshness) for warnings and retry behavior.
+
+Full layout defaults to all detected statuses; compact defaults to climate and location. Cached refresh and driving time are opt-in. Explicit empty lists hide their groups, and unrelated editor changes preserve omitted status defaults.
 
 ## Troubleshooting
 
@@ -165,8 +180,12 @@ Requires Node.js 24 or later.
 ```bash
 npm ci
 npm run check
+npx playwright install chromium
+npm run test:visual
 npm run dev
 ```
+
+`npm run check` verifies formatting, lint, types, unit tests and the build. Browser tests run separately. `npm run dev` watches and rebuilds the distribution; to open the synthetic harness, use `npm exec vite -- --host 127.0.0.1 --port 4173` and visit `/tests/visual/`.
 
 The HACS distribution is generated as a single self-contained file at `dist/myhondaplus-vehicle-card.js`.
 

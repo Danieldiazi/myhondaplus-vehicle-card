@@ -2,6 +2,9 @@ export interface HomeAssistant {
   states: Record<string, HassEntity>;
   callWS<T>(message: Record<string, unknown>): Promise<T>;
   callService(domain: string, service: string, data?: Record<string, unknown>): Promise<void>;
+  connection?: {
+    subscribeEvents(callback: () => void, eventType: string): Promise<() => void>;
+  };
   language?: string;
   config?: {
     version?: string;
@@ -122,12 +125,15 @@ export interface VehicleState {
   hoodOpen?: boolean;
   lightsOn?: boolean;
   ageSeconds?: number;
+  ageSource?: "vehicle" | "home_assistant";
   stale: boolean;
 }
 
 export interface DiagnosticEntity {
   key: keyof EntityMap;
   entityId?: string;
+  configured: boolean;
+  present: boolean;
   available: boolean;
 }
 

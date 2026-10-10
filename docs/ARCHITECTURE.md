@@ -20,6 +20,10 @@ src/
 ├── entity-resolver.ts   Descubrimiento de entidades del vehículo
 ├── model-resolver.ts    Detección de la familia visual Honda
 ├── vehicle-art.ts       Ilustración del Civic y fallback visual de Honda
+├── config.ts            Validación de YAML y valores predeterminados
+├── vehicle-state.ts     Normalización y antigüedad de los datos
+├── diagnostics.ts       Diagnóstico sin estados ni identificadores completos
+├── localize.ts          Traducciones en/es/gl
 ├── constants.ts         Valores predeterminados, versión y colores
 ├── types.ts             Contratos TypeScript compartidos
 └── index.ts             Registro del custom element y metadatos Lovelace
@@ -33,7 +37,7 @@ src/
 4. `entity-resolver.ts` asigna las entidades conocidas al modelo interno `EntityMap`.
 5. La presencia de esas entidades determina las capacidades visibles; el modelo del coche no activa funciones.
 6. `model-resolver.ts` determina exclusivamente la familia visual usando los datos del dispositivo.
-7. `card.ts` convierte el estado de las entidades en métricas, estados y acciones.
+7. `vehicle-state.ts` normaliza los estados; `card.ts` representa métricas, estados y acciones.
 8. `vehicle-art.ts` renderiza la ilustración sin acceder directamente a Home Assistant.
 
 ## Responsabilidades
@@ -61,6 +65,16 @@ El renderer recibe un modelo visual ya resuelto y muestra la ilustración espec�
 ### `editor.ts`
 
 El editor solo modifica `MyHondaPlusCardConfig` y emite `config-changed`. La tarjeta debe seguir funcionando con YAML aunque el editor no se cargue.
+
+## Ciclo de vida y seguridad de los datos
+
+La tarjeta comparte una consulta de detección pendiente. Cada configuración o invalidación incrementa una generación; una respuesta anterior no puede sustituir el vehículo actual. Las actualizaciones normales de estados y del reloj no consultan los registros. Los fallos quedan pendientes de reintento explícito para evitar bucles.
+
+La conexión pública de Home Assistant permite suscribirse a `entity_registry_updated` y `device_registry_updated`. Al retirar la tarjeta se cancelan las suscripciones y el reloj de antigüedad. La detección manual funciona también sin conexión de eventos.
+
+La antigüedad procede del estado del sensor de fecha, no de `last_updated`. Las estimaciones de HA están identificadas y no prueban que el dato del coche sea reciente. El cierre solo distingue `locked`/`unlocked`; los estados desconocidos o transitorios desactivan su acción.
+
+`config.ts` valida YAML antes de renderizar. `diagnostics.ts` expone metadatos y disponibilidad con identificadores reducidos al dominio.
 
 ## Compatibilidad
 

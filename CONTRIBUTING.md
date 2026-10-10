@@ -25,16 +25,16 @@ npm run test:visual
 
 ## Comandos
 
-| Comando               | Propósito                                   |
-| --------------------- | ------------------------------------------- |
-| `npm run dev`         | Recompila el bundle al detectar cambios     |
-| `npm run format`      | Aplica Prettier                             |
-| `npm run lint`        | Ejecuta ESLint                              |
-| `npm run typecheck`   | Comprueba TypeScript estricto               |
-| `npm test`            | Ejecuta Vitest                              |
-| `npm run test:visual` | Ejecuta las pruebas visuales con Playwright |
-| `npm run build`       | Genera el bundle HACS                       |
-| `npm run check`       | Ejecuta todas las comprobaciones anteriores |
+| Comando               | Propósito                                                                  |
+| --------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`         | Recompila el bundle al detectar cambios                                    |
+| `npm run format`      | Aplica Prettier                                                            |
+| `npm run lint`        | Ejecuta ESLint                                                             |
+| `npm run typecheck`   | Comprueba TypeScript estricto                                              |
+| `npm test`            | Ejecuta Vitest                                                             |
+| `npm run test:visual` | Ejecuta las pruebas visuales con Playwright                                |
+| `npm run build`       | Genera el bundle HACS                                                      |
+| `npm run check`       | Formato, ESLint, tipos, Vitest y build; Playwright se ejecuta por separado |
 
 ## Buenas prácticas
 
@@ -88,3 +88,5 @@ Hasta que exista una ilustración específica, el modelo debe utilizar el logoti
 - adjunta una captura de la tarjeta en tema claro y oscuro.
 
 El SVG debe seguir siendo legible cuando el usuario desactive la sombra de color.
+
+`npm run dev` recompila; no inicia un servidor web. Para explorar datos sintéticos, ejecuta `npm exec vite -- --host 127.0.0.1 --port 4173` y abre `http://127.0.0.1:4173/tests/visual/`. Las pruebas de navegador verifican comportamiento, disposición y desbordamiento; no comparan imágenes automáticamente. Adjunta capturas sintéticas claras y oscuras cuando cambie la interfaz.

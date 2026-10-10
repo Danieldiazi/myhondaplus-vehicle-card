@@ -1,6 +1,7 @@
-import { css, html, LitElement, nothing, type TemplateResult } from "lit";
+import { css, html, LitElement, nothing, type PropertyValues, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { CARD_TAG, DEFAULT_CONFIG, PAINT_PRESETS } from "./constants";
+import { normalizeConfig } from "./config";
 import { createDiagnostics, diagnosticsText } from "./diagnostics";
 import { discoverIntegration } from "./integration-discovery";
 import { localize, normalizeLocale, type TranslationKey } from "./localize";
@@ -19,7 +20,7 @@ import type {
   VehicleState,
 } from "./types";
 import { renderVehicleArt } from "./vehicle-art";
-import { buildVehicleState } from "./vehicle-state";
+import { buildVehicleState, isEntityAvailable } from "./vehicle-state";
 
 @customElement(CARD_TAG)
 export class MyHondaPlusVehicleCard extends LitElement {
@@ -34,6 +35,13 @@ export class MyHondaPlusVehicleCard extends LitElement {
   @state() private integrationDetected = false;
   @state() private vehicleCount = 0;
   @state() private compatibleEntityCount = 0;
+  @state() private discoveryFailed = false;
+  private discoveryTask?: Promise<void>;
+  private discoveryGeneration = 0;
+  private watchedConnection?: HomeAssistant["connection"];
+  private subscriptionGeneration = 0;
+  private unsubscribers: Array<() => void> = [];
+  private ageTimer?: ReturnType<typeof setInterval>;
   private loadedDevice?: string;
   private configuredStatuses?: StatusKey[];
 
@@ -50,7 +58,7 @@ export class MyHondaPlusVehicleCard extends LitElement {
 
   public setConfig(config: MyHondaPlusCardConfig): void {
     if (!config) throw new Error(localize("required_config", "es"));
-    const nextConfig = { ...DEFAULT_CONFIG, ...config };
+    const nextConfig = normalizeConfig(config, this.hass?.language);
     this.configuredStatuses = config.statuses ? [...config.statuses] : undefined;
     if (
       this.config.vehicle_image !== nextConfig.vehicle_image ||
@@ -60,16 +68,74 @@ export class MyHondaPlusVehicleCard extends LitElement {
     }
     this.config = nextConfig;
     this.entities = { ...(config.entities ?? {}) };
-    this.loadedDevice = undefined;
-    this.discoveryComplete = false;
+    this.invalidateDiscovery();
   }
 
   public getCardSize(): number {
     return this.config.layout === "compact" ? 3 : 6;
   }
 
-  protected override updated(): void {
+  public override connectedCallback(): void {
+    super.connectedCallback();
+    this.ageTimer = setInterval(() => this.requestUpdate(), 60000);
+    this.watchRegistry();
     void this.loadDeviceData();
+  }
+
+  public override disconnectedCallback(): void {
+    super.disconnectedCallback();
+    clearInterval(this.ageTimer);
+    this.ageTimer = undefined;
+    this.stopWatchingRegistry();
+    this.invalidateDiscovery();
+  }
+
+  protected override updated(changed: PropertyValues): void {
+    if (changed.has("hass") || changed.has("config")) {
+      this.watchRegistry();
+      void this.loadDeviceData();
+    }
+  }
+
+  private invalidateDiscovery(): void {
+    this.discoveryGeneration++;
+    this.loadedDevice = undefined;
+    this.discoveryComplete = false;
+    this.discoveryFailed = false;
+  }
+
+  private retryDiscovery(): void {
+    this.invalidateDiscovery();
+    void this.loadDeviceData();
+  }
+
+  private stopWatchingRegistry(): void {
+    this.subscriptionGeneration++;
+    this.unsubscribers.splice(0).forEach((unsubscribe) => unsubscribe());
+    this.watchedConnection = undefined;
+  }
+
+  private watchRegistry(): void {
+    const connection = this.hass?.connection;
+    if (!this.isConnected || this.watchedConnection === connection) return;
+    this.stopWatchingRegistry();
+    this.invalidateDiscovery();
+    this.watchedConnection = connection;
+    if (!connection) return;
+    const generation = this.subscriptionGeneration;
+    for (const eventType of ["entity_registry_updated", "device_registry_updated"]) {
+      void connection
+        .subscribeEvents(() => {
+          if (generation === this.subscriptionGeneration) this.retryDiscovery();
+        }, eventType)
+        .then((unsubscribe) => {
+          if (!this.isConnected || generation !== this.subscriptionGeneration) unsubscribe();
+          else this.unsubscribers.push(unsubscribe);
+        })
+        .catch(() => {
+          // Manual rediscovery remains available if HA refuses event subscriptions.
+        });
+    }
   }
 
   private locale(): string {
@@ -83,38 +149,51 @@ export class MyHondaPlusVehicleCard extends LitElement {
   }
 
   private async loadDeviceData(): Promise<void> {
-    const requestedDevice = this.config.device ?? "";
-    if (!this.hass || (this.discoveryComplete && this.loadedDevice === requestedDevice)) return;
+    const hass = this.hass;
+    const config = this.config;
+    const requestedDevice = config.device ?? "";
+    if (
+      !this.isConnected ||
+      !hass ||
+      this.discoveryTask ||
+      ((this.discoveryComplete || this.discoveryFailed) && this.loadedDevice === requestedDevice)
+    )
+      return;
+    const generation = this.discoveryGeneration;
     this.loadedDevice = requestedDevice;
-
-    try {
-      const [registry, devices] = await Promise.all([
-        this.hass.callWS<EntityRegistryEntry[]>({ type: "config/entity_registry/list" }),
-        this.hass.callWS<DeviceRegistryEntry[]>({ type: "config/device_registry/list" }),
-      ]);
-      const discovery = discoverIntegration(
-        devices,
-        registry,
-        this.hass.config?.components,
-        this.config.device,
-        this.config.entities,
-      );
-      this.integrationDetected = discovery.integrationDetected;
-      this.vehicleCount = discovery.vehicles.length;
-      this.device = discovery.selectedDevice;
-      this.entities = discovery.entities;
-      this.compatibleEntityCount = discovery.compatibleEntityCount;
-      this.discoveryComplete = true;
-      this.message = undefined;
-    } catch (error) {
-      this.loadedDevice = undefined;
-      this.discoveryComplete = false;
-      this.message = { kind: "error", text: this.t("discovery_failed") };
-      console.warn("My Honda+ Vehicle Card: discovery failed", error);
-    }
+    this.discoveryTask = (async () => {
+      try {
+        const [registry, devices] = await Promise.all([
+          hass.callWS<EntityRegistryEntry[]>({ type: "config/entity_registry/list" }),
+          hass.callWS<DeviceRegistryEntry[]>({ type: "config/device_registry/list" }),
+        ]);
+        if (!this.isConnected || generation !== this.discoveryGeneration) return;
+        const discovery = discoverIntegration(
+          devices,
+          registry,
+          hass.config?.components,
+          config.device,
+          config.entities,
+        );
+        this.integrationDetected = discovery.integrationDetected;
+        this.vehicleCount = discovery.vehicles.length;
+        this.device = discovery.selectedDevice;
+        this.entities = discovery.entities;
+        this.compatibleEntityCount = discovery.compatibleEntityCount;
+        this.discoveryComplete = true;
+        this.discoveryFailed = false;
+      } catch {
+        if (!this.isConnected || generation !== this.discoveryGeneration) return;
+        this.discoveryFailed = true;
+      }
+    })();
+    await this.discoveryTask;
+    this.discoveryTask = undefined;
+    if (this.isConnected && generation !== this.discoveryGeneration) void this.loadDeviceData();
   }
 
   private setupIssue(): TranslationKey | undefined {
+    if (this.discoveryFailed) return "discovery_failed";
     if (!this.discoveryComplete) return "card_checking_integration";
     if (!this.integrationDetected) return "card_integration_not_detected";
     if (!this.config.device && this.vehicleCount === 0) return "card_no_vehicles_configured";
@@ -141,6 +220,13 @@ export class MyHondaPlusVehicleCard extends LitElement {
                 rel="noopener noreferrer"
                 >${this.t("editor_integration_instructions")}</a
               >`
+          : nothing
+      }
+      ${
+        issue !== "card_checking_integration"
+          ? html`<button type="button" @click=${() => this.retryDiscovery()}>
+              ${this.t("editor_redetect_entities")}
+            </button>`
           : nothing
       }
     </div>`;
@@ -207,6 +293,8 @@ export class MyHondaPlusVehicleCard extends LitElement {
     }
 
     const state = this.vehicleState();
+    if (!isEntityAvailable(this.entity(key)) || (key === "lock" && state.locked === undefined))
+      return;
     const domain = entityId.split(".")[0] ?? "";
     let service =
       domain === "button" ? "press" : this.entity(key)?.state === "on" ? "turn_off" : "turn_on";
@@ -215,8 +303,16 @@ export class MyHondaPlusVehicleCard extends LitElement {
     const confirmations: string[] = [];
     const remoteAction =
       key === "lock" || key === "climate" || key === "horn_lights" || key === "refresh";
-    if (remoteAction && state.stale && this.config.warn_stale_actions !== false) {
-      confirmations.push(this.t("confirm_stale_action"));
+    if (
+      remoteAction &&
+      (state.stale || state.ageSource !== "vehicle") &&
+      this.config.warn_stale_actions !== false
+    ) {
+      confirmations.push(
+        this.t(
+          state.ageSource === "vehicle" ? "confirm_stale_action" : "confirm_unknown_age_action",
+        ),
+      );
     }
     if (domain === "lock" && service === "unlock" && this.config.confirm_unlock !== false) {
       confirmations.push(this.t("confirm_unlock"));
@@ -295,8 +391,16 @@ export class MyHondaPlusVehicleCard extends LitElement {
 
   private freshness(state: VehicleState): TemplateResult {
     const className = `freshness ${state.stale ? "stale" : ""}`;
-    const title = state.stale ? this.t("stale_data") : "";
-    const text = this.ageText(state);
+    const title =
+      state.ageSource !== "vehicle"
+        ? this.t("no_update_date")
+        : state.stale
+          ? this.t("stale_data")
+          : "";
+    const text =
+      state.ageSource === "home_assistant"
+        ? this.t("ha_update_age", { age: this.ageText(state) })
+        : this.ageText(state);
     return this.entities.updated
       ? html`<button
           class=${className}
@@ -334,11 +438,10 @@ export class MyHondaPlusVehicleCard extends LitElement {
 
   private locationStatus(): TemplateResult | typeof nothing {
     const entity = this.entity("location");
-    if (!entity) return nothing;
-    const unavailable = ["unknown", "unavailable"].includes(entity.state.toLowerCase());
+    const unavailable = !isEntityAvailable(entity);
     const value = unavailable
       ? this.t("unavailable")
-      : entity.state.replaceAll("_", " ").replace(/^./, (character) => character.toUpperCase());
+      : entity!.state.replaceAll("_", " ").replace(/^./, (character) => character.toUpperCase());
     return html`<button
       type="button"
       class="status info-status ${unavailable ? "unavailable" : ""}"
@@ -422,10 +525,8 @@ export class MyHondaPlusVehicleCard extends LitElement {
     if (!this.entities[key]) return nothing;
     const loading = this.busy === key;
     const entity = this.entity(key);
-    const domain = this.entities[key]?.split(".")[0];
-    const state = entity?.state.toLowerCase();
     const unavailable =
-      !entity || state === "unavailable" || (state === "unknown" && domain !== "button");
+      !isEntityAvailable(entity) || (key === "lock" && this.vehicleState().locked === undefined);
     return html`<button
       type="button"
       aria-label=${label}
@@ -595,6 +696,9 @@ export class MyHondaPlusVehicleCard extends LitElement {
               <button type="button" @click=${() => void this.copyDiagnostics()}>
                 ${this.t("copy_diagnostics")}
               </button>
+              <button type="button" @click=${() => this.retryDiscovery()}>
+                ${this.t("editor_redetect_entities")}
+              </button>
               <pre>
 ${diagnosticsText(createDiagnostics(this.hass, this.entities, this.model(), this.locale()))}</pre>
             </details>`
@@ -722,7 +826,9 @@ ${diagnosticsText(createDiagnostics(this.hass, this.entities, this.model(), this
       font-family: inherit;
       font-size: var(--ha-font-size-s, 0.75rem);
       color: var(--secondary-text-color);
-      white-space: nowrap;
+      white-space: normal;
+      text-align: center;
+      max-width: 100%;
     }
     button.freshness {
       cursor: pointer;
@@ -856,7 +962,8 @@ ${diagnosticsText(createDiagnostics(this.hass, this.entities, this.model(), this
       margin-top: 15px;
     }
     .controls button,
-    .diagnostics button {
+    .diagnostics button,
+    .setup button {
       display: grid;
       place-items: center;
       gap: 4px;
@@ -876,13 +983,15 @@ ${diagnosticsText(createDiagnostics(this.hass, this.entities, this.model(), this
         border-color 0.18s ease;
     }
     .controls button:hover:not(:disabled),
-    .diagnostics button:hover:not(:disabled) {
+    .diagnostics button:hover:not(:disabled),
+    .setup button:hover:not(:disabled) {
       transform: translateY(-2px);
       background: color-mix(in srgb, var(--primary-color) 20%, var(--card-background-color));
       border-color: var(--primary-color);
     }
     .controls button:focus-visible,
-    .diagnostics button:focus-visible {
+    .diagnostics button:focus-visible,
+    .setup button:focus-visible {
       outline: 3px solid var(--primary-color);
       outline-offset: 2px;
     }

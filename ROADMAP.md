@@ -26,7 +26,14 @@ Este documento refleja la base estable iniciada en `v1.0.0` y corregida en la ve
 
 ## Datos avanzados — sujetos a disponibilidad
 
-Estas funciones solo se incorporarán cuando la integración publique entidades estables que permitan implementarlas sin consultar directamente los servicios de Honda:
+La integración revisada (5.5.0) ya define varias entidades avanzadas; su presencia depende del vehículo. El trabajo siguiente es representarlas y probarlas en la tarjeta, sin consultar Honda directamente:
+
+- Tiempo restante de carga y objetivos de batería, usando los límites reales de las entidades numéricas.
+- Separar «cable conectado» de «carga activa».
+- Temperaturas interior/exterior y ajustes de climatización cuando existan.
+- Alertas publicadas por la integración con estados desconocidos explícitos.
+
+Otras propuestas sujetas a datos e historial:
 
 - Hora estimada de finalización de carga.
 - Historial resumido de autonomía y batería utilizando datos de Home Assistant.
