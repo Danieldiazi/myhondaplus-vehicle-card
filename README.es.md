@@ -124,7 +124,7 @@ La mayor parte de la configuración se puede realizar desde el editor visual, po
 
 ### Instalación manual sin HACS
 
-1. Descarga el archivo generado `myhondaplus-vehicle-card.js` de una [release](https://github.com/Danieldiazi/myhondaplus-vehicle-card/releases).
+1. Descarga el archivo generado `myhondaplus-vehicle-card.js` de una [release](https://github.com/Danieldiazi/myhondaplus-vehicle-card/releases). Comprueba que **Assets** incluye ese archivo; si falta, elige la versión más reciente que lo adjunte. Los archivos ZIP y TAR del código fuente no sustituyen este asset.
 2. Cópialo a `/config/www/myhondaplus-vehicle-card.js` en tu servidor Home Assistant.
 3. Registra `/local/myhondaplus-vehicle-card.js` en **Ajustes → Paneles → Recursos**, con tipo **Módulo JavaScript**. La gestión de recursos puede requerir el modo avanzado en tu perfil de HA.
 4. Recarga sin caché y añade la tarjeta. Para actualizar, sustituye el mismo archivo; registra el recurso una sola vez.

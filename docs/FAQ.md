@@ -51,6 +51,10 @@ Si se omite `statuses`, el diseño compacto incluye climatización y ubicación 
 
 HACS muestra la versión instalada y la última disponible en la página del repositorio. Home Assistant también crea una entidad de actualización con los atributos `installed_version` y `latest_version`. La versión cargada se anuncia además en la consola del navegador.
 
+## HACS muestra una versión nueva, pero no puede descargarla
+
+Comprueba que la release tiene el asset `myhondaplus-vehicle-card.js`. Una etiqueta y los archivos ZIP/TAR del código fuente no bastan. Si falta el JavaScript, instala la versión más reciente que sí lo adjunte e informa del problema; recargar el navegador o reiniciar HA no crea el archivo ausente. El mantenedor debe seguir la [guía de recuperación](RELEASING.md#recuperación-ante-una-release-incorrecta) y publicar un parche completo.
+
 ## HACS no detecta inmediatamente una release nueva
 
 La detección depende de la comprobación periódica de HACS. Puedes actualizar la información del repositorio, pero reiniciar Home Assistant no garantiza que la release aparezca antes. Cuando HACS la instale, recarga el navegador sin caché.

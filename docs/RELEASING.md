@@ -4,6 +4,8 @@
 
 Esta guía describe el proceso seguro para publicar una versión de My Honda+ Vehicle Card sin distribuir un bundle antiguo.
 
+**Crear una release manual en GitHub no actualiza la versión del proyecto ni genera el JavaScript para HACS.** Prepara primero el pull request de versión y activa después el workflow **Release** siguiendo esta guía. Una etiqueta o una release sin el asset `myhondaplus-vehicle-card.js` no completa la publicación.
+
 ## 1. Elegir la versión
 
 El proyecto sigue Semantic Versioning:
@@ -83,7 +85,7 @@ La aparición en HACS puede demorarse. Reiniciar Home Assistant no fuerza esa co
 
 No sobrescribas silenciosamente una release ni muevas una etiqueta ya consumida. Corrige la causa, incrementa el parche y publica un nuevo artefacto desde el último commit válido de distribución.
 
-Si una release distribuyó código antiguo:
+Si una release distribuyó código antiguo, carece del asset JavaScript o etiqueta un paquete con una versión diferente:
 
 1. identifica el último commit correcto de `main`;
 2. sincroniza metadatos en un nuevo parche;
