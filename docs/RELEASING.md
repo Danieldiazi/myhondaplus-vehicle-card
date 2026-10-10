@@ -62,7 +62,7 @@ El workflow:
 
 1. deriva la etiqueta desde el nombre de la rama;
 2. verifica que la etiqueta y `package.json` coincidan;
-3. ejecuta `npm ci`, auditoría, comprobaciones y build;
+3. ejecuta `npm ci`, auditoría, comprobaciones, build y pruebas de navegador en Chromium;
 4. crea la etiqueta y la GitHub Release;
 5. adjunta `dist/myhondaplus-vehicle-card.js`.
 

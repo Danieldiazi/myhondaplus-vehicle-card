@@ -41,6 +41,8 @@ jobs:
       - run: npm ci
       - run: npm run audit:prod
       - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:visual
       - uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.release.outputs.tag }}

@@ -35,6 +35,18 @@ The bottom controls —lock, climate, horn and lights, and refresh— call Home 
 
 The last-update age exceeded `stale_after`, six hours by default. With `warn_stale_actions: true`, the card requests confirmation before selected remote actions. The warning does not update the vehicle.
 
+## Why is freshness unknown after a cloud refresh?
+
+HA's `last_updated` records an entity write; the timestamp sensor's state describes the vehicle data date. A cloud refresh can keep that date unchanged. Invalid, future or unavailable dates are not reported as fresh. When the timestamp entity is absent, an HA update estimate does not remove the unknown-age warning.
+
+## Why is an unknown button enabled but an unknown lock disabled?
+
+Buttons may remain `unknown` until first pressed. A lock in `unknown`, `unavailable`, `locking`, `unlocking` or `jammed` cannot determine a safe toggle and is disabled.
+
+## Why does compact layout show fewer statuses?
+
+Omitted `statuses` defaults to climate and location in compact layout and all detected statuses in full layout. An explicit list replaces this, including an empty list. Editing metrics or controls preserves omitted defaults.
+
 ## How can I check the installed version?
 
 HACS shows the installed and latest versions on the repository page. Home Assistant also creates an update entity with `installed_version` and `latest_version` attributes. The loaded card version is announced in the browser console.

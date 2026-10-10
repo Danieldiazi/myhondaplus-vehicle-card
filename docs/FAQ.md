@@ -35,6 +35,18 @@ Los controles inferiores —abrir/cerrar, climatización, bocina y luces y actua
 
 El dato de última actualización ha superado `stale_after`, seis horas de forma predeterminada. Con `warn_stale_actions: true`, la tarjeta pide confirmación antes de determinadas acciones remotas. El aviso no actualiza el vehículo por sí mismo.
 
+## ¿Por qué la fecha es desconocida después de actualizar la nube?
+
+`last_updated` registra una escritura en HA; el estado del sensor de fecha describe los datos del vehículo. Una actualización de la nube puede conservar esa fecha. Las fechas incorrectas, futuras o no disponibles no se presentan como recientes. Si no existe ese sensor, la estimación de actualización de HA no elimina el aviso de fecha desconocida.
+
+## ¿Por qué se puede pulsar un botón desconocido pero no accionar un cierre desconocido?
+
+Los botones pueden permanecer `unknown` hasta su primera pulsación. Un cierre en `unknown`, `unavailable`, `locking`, `unlocking` o `jammed` no permite determinar una acción segura y se desactiva.
+
+## ¿Por qué el diseño compacto muestra menos estados?
+
+Si se omite `statuses`, el diseño compacto incluye climatización y ubicación y el completo todos los estados detectados. Una lista explícita sustituye ese valor, incluida una lista vacía. Cambiar métricas o controles conserva los estados implícitos.
+
 ## ¿Cómo compruebo la versión instalada?
 
 HACS muestra la versión instalada y la última disponible en la página del repositorio. Home Assistant también crea una entidad de actualización con los atributos `installed_version` y `latest_version`. La versión cargada se anuncia además en la consola del navegador.

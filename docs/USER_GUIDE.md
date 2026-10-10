@@ -37,7 +37,7 @@ Sigue las instrucciones del repositorio [My Honda+ for Home Assistant](https://g
 
 ### Instalar la tarjeta
 
-1. Abre **HACS → Frontend**.
+1. Abre **HACS**.
 2. Añade `https://github.com/Danieldiazi/myhondaplus-vehicle-card` como repositorio personalizado de tipo **Dashboard**.
 3. Instala **My Honda+ Vehicle Card**.
 4. Recarga completamente el navegador o la aplicación de Home Assistant.
@@ -218,3 +218,13 @@ Al abrir una incidencia sobre la tarjeta, incluye:
 - configuración YAML sin datos privados;
 - diagnóstico anonimizado;
 - captura del error de la consola, cuando exista.
+
+## Antigüedad, valores predeterminados y recuperación
+
+El estado del sensor de fecha determina la antigüedad del vehículo; su escritura en HA no indica cuándo el coche suministró los datos. Las fechas incorrectas o no disponibles muestran **Sin fecha de actualización**. Si no existe ese sensor, cualquier estimación de HA se etiqueta expresamente. Con `warn_stale_actions: true`, las órdenes remotas requieren confirmación cuando los datos son antiguos o su fecha es desconocida.
+
+Las métricas predeterminadas son autonomía, batería, kilometraje, distancia mensual y consumo medio. Los controles predeterminados son cierre, climatización, bocina/luces y actualización directa; la actualización de datos guardados es opcional. El diseño completo incluye todos los estados detectados; el compacto, climatización y ubicación. Las listas explícitas sustituyen esos valores, incluidas las listas vacías.
+
+Un error detiene los reintentos automáticos. Utiliza el botón de reintento de la tarjeta o **Volver a detectar integración y entidades** en el editor. Los eventos de registro actualizan las capacidades cuando HA permite suscripciones. `debug: true` añade otro botón de detección y un diagnóstico que distingue entidades asignadas, presentes y disponibles. Un cierre desconocido o transitorio no se puede accionar; un botón nunca pulsado con estado `unknown` puede seguir disponible.
+
+La instalación manual está en el [README](../README.es.md#instalación-manual-sin-hacs); el contrato completo, en [Configuración](CONFIGURATION.md).

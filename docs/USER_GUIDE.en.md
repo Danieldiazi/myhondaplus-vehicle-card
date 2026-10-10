@@ -30,7 +30,7 @@ Before continuing, open **Settings → Devices & services** and verify that the 
 ## Installation
 
 1. Install and configure [My Honda+ for Home Assistant](https://github.com/enricobattocchi/myhondaplus-homeassistant).
-2. Open **HACS → Frontend**.
+2. Open **HACS**.
 3. Add `https://github.com/Danieldiazi/myhondaplus-vehicle-card` as a custom repository of type **Dashboard**.
 4. Download **My Honda+ Vehicle Card**.
 5. Fully reload the browser or Home Assistant app.
@@ -137,6 +137,16 @@ warn_stale_actions: true
 
 The warning does not force an update. It warns before remote actions when the displayed vehicle state may no longer be current.
 
+## Freshness, defaults and recovery
+
+The timestamp sensor's state determines vehicle freshness; its HA write time does not show when the car supplied data. Invalid or unavailable timestamps show **No update date**. If no timestamp entity exists, any HA update estimate is labelled explicitly. With `warn_stale_actions: true`, remote commands require confirmation for outdated or unknown vehicle data.
+
+Default metrics are range, battery, odometer, monthly distance and average consumption. Default controls are locking, climate, horn/lights and direct vehicle refresh; cached refresh is opt-in. Full layout defaults to all detected statuses; compact defaults to climate and location. Explicit lists replace defaults, including empty lists.
+
+Discovery failures stop automatic retries. Use the card's retry button or **Detect integration and entities again** in the editor. Registry events refresh capabilities automatically when HA supports subscriptions. Enable `debug: true` for another rediscovery button and anonymized diagnostics distinguishing assigned, present and available entities. Unknown or transitional lock states disable the toggle; an unpressed `unknown` button can still be available.
+
+Manual installation is in the [README](../README.md#manual-installation-without-hacs); the full contract is in [Configuration](CONFIGURATION.en.md).
+
 ## Troubleshooting
 
 ### The card is missing
@@ -177,11 +187,11 @@ More answers are available in the [FAQ](FAQ.en.md).
 
 ## Getting help
 
-| Problem | Repository |
-| --- | --- |
-| Authentication or Honda communication | My Honda+ for Home Assistant |
+| Problem                                           | Repository                   |
+| ------------------------------------------------- | ---------------------------- |
+| Authentication or Honda communication             | My Honda+ for Home Assistant |
 | Vehicle or all entities missing in Home Assistant | My Honda+ for Home Assistant |
-| Existing entity not detected by the card | My Honda+ Vehicle Card |
-| Layout, translation, editor or card controls | My Honda+ Vehicle Card |
+| Existing entity not detected by the card          | My Honda+ Vehicle Card       |
+| Layout, translation, editor or card controls      | My Honda+ Vehicle Card       |
 
 Include Home Assistant, integration and card versions, browser, sanitized YAML, anonymized diagnostics and relevant console errors.

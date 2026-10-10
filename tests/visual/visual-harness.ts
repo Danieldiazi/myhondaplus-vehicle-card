@@ -13,6 +13,15 @@ import type {
 declare global {
   interface Window {
     __visualReady?: boolean;
+    __visualTest: {
+      hass: HomeAssistant;
+      config: MyHondaPlusCardConfig;
+      component: TestCard | TestEditor;
+      registry: EntityRegistryEntry[];
+      devices: DeviceRegistryEntry[];
+      events: Record<string, () => void>;
+      state: { wsCalls: number; failDiscovery: boolean; unsubscriptions: number };
+    };
   }
 }
 
@@ -61,8 +70,8 @@ const completeRegistry: EntityRegistryEntry[] = [
   registryEntry("binary_sensor.synthetic_lights", "lights"),
   registryEntry("sensor.synthetic_trip_distance", "distance_this_month"),
   registryEntry("sensor.synthetic_trip_consumption", "avg_consumption_this_month"),
-  registryEntry("button.synthetic_refresh", "refresh_from_car"),
-  registryEntry("button.synthetic_refresh_cached", "refresh"),
+  registryEntry("button.synthetic_refresh", "refresh_data"),
+  registryEntry("button.synthetic_refresh_cached", "refresh_cached"),
   registryEntry("button.synthetic_horn_lights", "horn_lights"),
   registryEntry("device_tracker.synthetic_location", "location"),
 ];
@@ -91,7 +100,7 @@ const states = Object.fromEntries(
     entity("sensor.synthetic_range", "420", "km"),
     entity("sensor.synthetic_battery", "72", "%"),
     entity("sensor.synthetic_odometer", "17505", "km"),
-    entity("sensor.synthetic_updated", now),
+    entity("sensor.synthetic_updated", entityUpdated),
     entity("switch.synthetic_climate", "on"),
     entity("binary_sensor.synthetic_charging", "off"),
     entity("binary_sensor.synthetic_doors", "off"),
@@ -108,17 +117,35 @@ const states = Object.fromEntries(
   ].map((item) => [item.entity_id, item]),
 );
 
+const events: Record<string, () => void> = {};
+const testState = {
+  wsCalls: 0,
+  failDiscovery: params.get("failDiscovery") === "true",
+  unsubscriptions: 0,
+};
 const hass: HomeAssistant = {
+  connection: {
+    subscribeEvents: async (callback, type) => {
+      events[type] = callback;
+      return () => {
+        delete events[type];
+        testState.unsubscriptions++;
+      };
+    },
+  },
   states,
   language: locale,
   config: { version: "2026.8.0", components },
   callWS: async <T>(message: Record<string, unknown>): Promise<T> => {
+    testState.wsCalls++;
     if (discoveryDelay) await new Promise((resolve) => window.setTimeout(resolve, 250));
+    if (testState.failDiscovery) throw new Error("Synthetic discovery failure");
     if (message.type === "config/entity_registry/list") return registry as T;
     if (message.type === "config/device_registry/list") return devices as T;
     throw new Error(`Unexpected websocket request: ${String(message.type)}`);
   },
-  callService: async (domain, service) => {
+  callService: async (domain, service, data) => {
+    document.body.dataset.calledEntity = String(data?.entity_id);
     document.body.dataset.calledService = `${domain}.${service}`;
   },
 };
@@ -160,6 +187,7 @@ const component =
   target === "editor"
     ? (document.createElement("myhondaplus-vehicle-card-editor") as TestEditor)
     : (document.createElement("myhondaplus-vehicle-card") as TestCard);
+window.__visualTest = { hass, config, component, registry, devices, events, state: testState };
 component.setConfig(config);
 component.hass = hass;
 document.querySelector("#root")?.append(component);

@@ -61,4 +61,56 @@ describe("vehicle state", () => {
     expect(state.tripDuration).toBe("510 min");
     expect(state.charging).toBeUndefined();
   });
+  it("uses vehicle timestamp state rather than the HA write timestamp", () => {
+    const state = buildVehicleState(
+      {
+        updated: entity("2026-08-02T02:00:00Z", undefined, "2026-08-02T10:00:00Z"),
+      },
+      21600,
+      Date.parse("2026-08-02T10:00:00Z"),
+    );
+    expect(state).toMatchObject({ ageSeconds: 28800, ageSource: "vehicle", stale: true });
+  });
+
+  it.each(["unknown", "unavailable", "none", "invalid", "0", "2026-08-02", "2026-08-03T10:00:00Z"])(
+    "keeps invalid or unavailable vehicle timestamp %s unknown despite recent HA writes",
+    (value) => {
+      const state = buildVehicleState(
+        {
+          updated: entity(value),
+          range: entity("420", "km"),
+        },
+        300,
+        Date.parse("2026-08-02T10:00:00Z"),
+      );
+      expect(state.ageSeconds).toBeUndefined();
+      expect(state.ageSource).toBeUndefined();
+    },
+  );
+
+  it("identifies the fallback age as an HA estimate and skips unavailable metrics", () => {
+    const now = Date.parse("2026-08-02T10:10:00Z");
+    expect(buildVehicleState({ range: entity("420") }, 300, now)).toMatchObject({
+      ageSeconds: 600,
+      ageSource: "home_assistant",
+      stale: true,
+    });
+    expect(
+      buildVehicleState({ range: entity("unavailable") }, 300, now).ageSeconds,
+    ).toBeUndefined();
+  });
+
+  it.each(["unknown", "unavailable", "locking", "unlocking", "jammed"])(
+    "does not present lock state %s as unlocked",
+    (value) => {
+      expect(buildVehicleState({ lock: entity(value) }, 300).locked).toBeUndefined();
+    },
+  );
+
+  it("ages the unchanged vehicle timestamp as time passes", () => {
+    const entities = { updated: entity("2026-08-02T10:00:00Z") };
+    expect(buildVehicleState(entities, 300, Date.parse("2026-08-02T10:00:00Z")).stale).toBe(false);
+    expect(buildVehicleState(entities, 300, Date.parse("2026-08-02T10:06:00Z")).stale).toBe(true);
+    expect(buildVehicleState({ lock: entity("unlocked") }, 300).locked).toBe(false);
+  });
 });

@@ -10,6 +10,27 @@ El proyecto sigue [Semantic Versioning](https://semver.org/):
 
 ## [Unreleased]
 
+### Fixed
+
+- Detección separada de `refresh_data`/`refresh_from_car` y `refresh_cached`, con identificadores estables y desempate determinista.
+- La climatización no se confunde con deshielo ni ajustes relacionados.
+- La antigüedad usa la fecha del vehículo; las fechas desconocidas y estimaciones de HA ya no se presentan como datos recientes del coche.
+- Los estados de cierre desconocidos o transitorios no se muestran como desbloqueado ni permiten accionar el cierre.
+- Detección sin consultas duplicadas, respuestas obsoletas ni reintentos en bucle; redetección por eventos o botón manual.
+- El editor conserva los estados implícitos del diseño compacto al cambiar métricas o controles y respeta listas vacías explícitas.
+- El diagnóstico distingue entidades asignadas, presentes y disponibles, conservando su anonimización.
+- La distribución incluye cambios en `assets/`.
+- Actualizaciones compatibles del lockfile para resolver los avisos de auditoría de Vitest, brace-expansion y source-map-js.
+
+### Added
+
+- Validación localizada de configuración YAML y pruebas de regresión.
+- Pruebas de navegador antes de publicar releases.
+
+### Removed
+
+- Implementación JavaScript antigua no utilizada por el bundle TypeScript.
+
 ### Changed
 
 - Documentación sincronizada con la serie 1.x: confirmaciones, acciones de actualización, opciones de configuración, fallback visual y versiones con soporte.
@@ -29,7 +50,6 @@ El proyecto sigue [Semantic Versioning](https://semver.org/):
 - Confirmaciones opcionales para climatización, bocina y luces y actualización directa desde el coche.
 - Advertencia configurable antes de enviar acciones remotas cuando los datos del vehículo están marcados como antiguos.
 - Indicadores visuales discretos en métricas, estados, cierre y fecha de actualización para señalar que abren el diálogo nativo de Home Assistant.
-
 
 ## [0.9.1] - 2026-08-08
 

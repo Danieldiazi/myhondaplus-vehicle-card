@@ -1,6 +1,7 @@
 import { css, html, LitElement, nothing, type PropertyValues, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { DEFAULT_CONFIG, EDITOR_TAG, PAINT_PRESETS } from "./constants";
+import { normalizeConfig } from "./config";
 import { resolveEntities } from "./entity-resolver";
 import { discoverIntegration } from "./integration-discovery";
 import { localize, normalizeLocale, type TranslationKey } from "./localize";
@@ -27,7 +28,7 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
 
   public setConfig(config: MyHondaPlusCardConfig): void {
     this.statusesExplicit = config.statuses !== undefined;
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = normalizeConfig(config, this.hass?.language);
   }
 
   private locale(): string {
@@ -47,7 +48,7 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
     }
   }
 
-  private async loadDevices(): Promise<void> {
+  private async loadDevices(manual = false): Promise<void> {
     if (!this.hass || this.loading) return;
     this.loading = true;
     this.discoveryError = false;
@@ -62,6 +63,7 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
         this.deviceName(a).localeCompare(this.deviceName(b)),
       );
       this.registryEntries = entities;
+      if (manual) this.emitConfig(this.config);
     } catch (error) {
       console.warn("My Honda+ Vehicle Card: device discovery failed", error);
       this.devices = [];
@@ -75,6 +77,25 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
     return device.name_by_user ?? device.name ?? device.model ?? device.id;
   }
 
+  private selectedValues(field: "controls" | "metrics" | "statuses"): string[] {
+    if (field === "statuses" && !this.statusesExplicit && this.config.layout === "compact")
+      return ["climate", "location"];
+    return [...(this.config[field] ?? DEFAULT_CONFIG[field])];
+  }
+
+  private emitConfig(next: MyHondaPlusCardConfig): void {
+    const config = { ...next };
+    if (!this.statusesExplicit) delete config.statuses;
+    this.config = config;
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config },
+        bubbles: true,
+        composed: true,
+      }),
+    );
+  }
+
   private updateField(event: Event): void {
     const target = event.currentTarget as HTMLInputElement | HTMLSelectElement;
     let value: string | boolean | number = target.value;
@@ -83,35 +104,20 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
       value = Number(target.value);
 
     const config = { ...this.config, [target.name]: value };
-    if (!this.statusesExplicit) delete config.statuses;
     if (target.name === "color_preset" && value !== "custom") {
       config.vehicle_color = PAINT_PRESETS[String(value)]?.value ?? config.vehicle_color;
     }
-    this.config = config;
-    this.dispatchEvent(
-      new CustomEvent("config-changed", {
-        detail: { config },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.emitConfig(config);
   }
 
   private toggleListValue(event: Event, field: "controls" | "metrics" | "statuses"): void {
+    const current = new Set(this.selectedValues(field));
     if (field === "statuses") this.statusesExplicit = true;
     const target = event.currentTarget as HTMLInputElement;
-    const current = new Set((this.config[field] ?? DEFAULT_CONFIG[field]) as string[]);
     if (target.checked) current.add(target.value);
     else current.delete(target.value);
     const config = { ...this.config, [field]: [...current] } as MyHondaPlusCardConfig;
-    this.config = config;
-    this.dispatchEvent(
-      new CustomEvent("config-changed", {
-        detail: { config },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.emitConfig(config);
   }
 
   private moveListValue(
@@ -119,8 +125,8 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
     value: string,
     direction: -1 | 1,
   ): void {
+    const current = this.selectedValues(field);
     if (field === "statuses") this.statusesExplicit = true;
-    const current = [...((this.config[field] ?? DEFAULT_CONFIG[field]) as string[])];
     const index = current.indexOf(value);
     const target = index + direction;
     if (index < 0 || target < 0 || target >= current.length) return;
@@ -130,14 +136,7 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
     current[index] = adjacentItem;
     current[target] = item;
     const config = { ...this.config, [field]: current } as MyHondaPlusCardConfig;
-    this.config = config;
-    this.dispatchEvent(
-      new CustomEvent("config-changed", {
-        detail: { config },
-        bubbles: true,
-        composed: true,
-      }),
-    );
+    this.emitConfig(config);
   }
 
   private checklist(
@@ -146,7 +145,7 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
     options: Array<[string, string]>,
     orderable = false,
   ): TemplateResult {
-    const selectedValues = [...((this.config[field] ?? DEFAULT_CONFIG[field]) as string[])];
+    const selectedValues = this.selectedValues(field);
     const selected = new Set(selectedValues);
     const optionMap = new Map(options.map((option) => [option[0], option]));
     const orderedOptions = orderable
@@ -312,7 +311,7 @@ export class MyHondaPlusVehicleCardEditor extends LitElement {
       <section>
         <h3>${this.t("editor_vehicle")}</h3>
         ${this.integrationStatus()}
-        <button type="button" ?disabled=${this.loading} @click=${() => this.loadDevices()}>
+        <button type="button" ?disabled=${this.loading} @click=${() => this.loadDevices(true)}>
           ${this.t("editor_redetect_entities")}
         </button>
         <label
