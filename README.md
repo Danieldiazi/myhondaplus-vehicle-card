@@ -63,29 +63,14 @@ The Honda logo is used only as a visual identifier for models without a dedicate
 
 Install and configure [My Honda+ for Home Assistant](https://github.com/enricobattocchi/myhondaplus-homeassistant). Check under **Settings → Devices & services** that Home Assistant displays the vehicle and its entities.
 
-### 2. Add the repository to HACS
+### 2. Install the card from HACS
 
-1. Open **HACS**. Current versions use a single repository list; older versions may show a **Frontend** section.
-2. Open the three-dot menu in the upper-right corner.
-3. Select **Custom repositories**.
-4. Paste the following URL into **Repository**:
+My Honda+ Vehicle Card is included in the default HACS catalog. You **do not need to add a custom repository**.
 
-   ```text
-   https://github.com/Danieldiazi/myhondaplus-vehicle-card
-   ```
-
-5. Under **Type**, select **Dashboard**. The label may vary slightly depending on your HACS version or translation.
-6. Select **Add**.
-
-Adding the custom repository only makes it available to HACS. **The card is not installed yet.**
-
-### 3. Download and install the card from HACS
-
-1. Return to the **HACS** repository list and, if needed, filter by **Dashboard**.
-2. Search for **My Honda+ Vehicle Card** or open the repository you just added.
-3. Select **Download**.
-4. Confirm the suggested version and select **Download** again in the confirmation dialog.
-5. Wait until HACS reports that the installation has completed.
+1. Open **HACS** in Home Assistant.
+2. Search for **My Honda+ Vehicle Card** (filter by **Dashboard** if needed).
+3. Open the card's repository and select **Download**.
+4. Confirm the proposed version and complete the download.
 
 HACS should automatically create the card's JavaScript resource. You can check it under **Settings → Dashboards → Resources**. The expected URL is:
 
@@ -95,7 +80,7 @@ HACS should automatically create the card's JavaScript resource. You can check i
 
 The resource type must be **JavaScript module**.
 
-### 4. Reload Home Assistant
+### 3. Reload Home Assistant
 
 After installing or updating the card, perform a full browser reload:
 
@@ -105,7 +90,7 @@ After installing or updating the card, perform a full browser reload:
 
 Restarting Home Assistant itself is usually not necessary.
 
-### 5. Add the card to your dashboard
+### 4. Add the card to your dashboard
 
 1. Open the dashboard where you want to display the vehicle.
 2. Select **Edit dashboard → Add card**.
@@ -128,8 +113,6 @@ Most settings are available in the visual editor, so you normally do not need to
 2. Copy it to `/config/www/myhondaplus-vehicle-card.js` on your Home Assistant server.
 3. Register `/local/myhondaplus-vehicle-card.js` under **Settings → Dashboards → Resources**, type **JavaScript module**. Resource management may require advanced mode in your HA profile.
 4. Hard reload, then add the card. To update, replace the same file; register the resource once.
-
-See the [official HACS custom repository instructions](https://www.hacs.xyz/docs/faq/custom_repositories/) for current terminology.
 
 ## Data freshness and default content
 
